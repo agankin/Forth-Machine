@@ -19,7 +19,8 @@ public static class MachineErrorFormatter
         {
             stringBuilder.AppendLine("ERROR:");
             stringBuilder.AppendLine($"Type = {error.Type}");
-            stringBuilder.AppendLine($"WhenTransitioningFrom = {error.WhenTransitioningFrom}");
+            var fromStateId = error.WhenTransitioningFrom.Map(state => $"StateId: {state.Id}");
+            stringBuilder.AppendLine($"WhenTransitioningFrom = {fromStateId}");
             stringBuilder.Append($"Transition = {error.Transition}");
         }
 

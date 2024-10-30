@@ -2,7 +2,7 @@ using DFAutomaton;
 using ForthMachine;
 using PureMonads;
 
-var machineAutomaton = MachineAutomatonBuilder.Build();
+var machine = MachineBuilder.Build();
 var initialState = MachineState.Initial;
 
 ReplReader.ReadInLoop("bye")
@@ -14,8 +14,8 @@ MachineState Run(MachineState state, IEnumerable<string> words)
     if (!words.Any())
         return state;
 
-    var result = machineAutomaton.Run(state, words.Append("END"));
-    result.OnError(PrintError);
+    var result = machine.Run(state, words.Append("END"))
+        .OnError(PrintError);
 
     return result.Value().Or(state);
 }
