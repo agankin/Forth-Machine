@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using DFAutomaton;
 using ForthMachine;
 using PureMonads;
@@ -14,8 +15,14 @@ MachineState Run(MachineState state, IEnumerable<string> words)
     if (!words.Any())
         return state;
 
+    var stopwatch = new Stopwatch();
+    stopwatch.Start();
+
     var result = machine.Run(state, words.Append("END"))
         .OnError(PrintError);
+
+    stopwatch.Stop();
+    PrintExecTime(stopwatch.ElapsedMilliseconds);
 
     return result.Value().Or(state);
 }
@@ -32,4 +39,9 @@ void PrintError(AutomatonError<string, MachineState> error)
     {
         Console.ForegroundColor = color;
     }
+}
+
+void PrintExecTime(long milliseconds)
+{
+    Console.WriteLine($"Exec time: {milliseconds}ms.");
 }

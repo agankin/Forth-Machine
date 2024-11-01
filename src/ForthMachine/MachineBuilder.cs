@@ -14,6 +14,7 @@ public static class MachineBuilder
         
         AddOperations(start);
         AddIfElseThen(start, builder);
+        AddBeginUntil(start);
         
         start.TransitsBy("END").WithReducingBy(NoOp).ToAccepted();
         
@@ -38,6 +39,9 @@ public static class MachineBuilder
         state.TransitsBy("-").WithReducingBy(Sub).ToSelf();
         state.TransitsBy("*").WithReducingBy(Mul).ToSelf();
         state.TransitsBy("/").WithReducingBy(Div).ToSelf();
+
+        state.TransitsBy("NEG").WithReducingBy(Neg).ToSelf();
+        state.TransitsBy("ABS").WithReducingBy(Abs).ToSelf();
         
         state.TransitsBy("=").WithReducingBy(Eq).ToSelf();
         state.TransitsBy("<>").WithReducingBy(NotEq).ToSelf();
@@ -46,7 +50,14 @@ public static class MachineBuilder
         state.TransitsBy(">").WithReducingBy(Greater).ToSelf();
         state.TransitsBy(">=").WithReducingBy(GreaterOrEq).ToSelf();
         
+        state.TransitsBy("DEPTH").WithReducingBy(Depth).ToSelf();
         state.TransitsBy("DUP").WithReducingBy(Dup).ToSelf();
+        state.TransitsBy("SWAP").WithReducingBy(Swap).ToSelf();
+        state.TransitsBy("OVER").WithReducingBy(Over).ToSelf();
+        state.TransitsBy("DROP").WithReducingBy(Drop).ToSelf();
+        
+        state.TransitsBy("STACK").WithReducingBy(Stack).ToSelf();
+        state.TransitsBy("SCOPE-STACK").WithReducingBy(ScopeStack).ToSelf();
     }
 
     private static void AddIfElseThen(State<string, MachineState> state, AutomatonBuilder<string, MachineState> builder)
@@ -59,5 +70,14 @@ public static class MachineBuilder
         state.TransitsBy("IF").Dynamicly().WithReducingBy(If(state.Id, noOpState.Id));
         state.TransitsBy("ELSE").Dynamicly().WithReducingBy(Else(noOpState.Id));
         state.TransitsBy("THEN").WithReducingBy(Then).ToSelf();
+    }
+
+    private static void AddBeginUntil(State<string, MachineState> state)
+    {
+        var beginState = state.TransitsBy("BEGIN").WithReducingBy(Begin).ToNew();
+        beginState.TransitsBy("UNTIL").WithReducingBy(BeginFinish).To(state);
+        beginState.AllOtherTransits().WithReducingBy(BeginLoop(beginState.Id));
+
+        state.TransitsBy("UNTIL").WithReducingBy(Until).ToSelf();
     }
 }
