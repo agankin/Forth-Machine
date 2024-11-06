@@ -28,3 +28,15 @@ public record BeginSyntacticScope(
         ? this with { NestedLoops = NestedLoops + 1 }
         : throw new Exception("NestedLoops value cannot be less zero.");
 }
+
+public record WordSyntacticScope(
+    string Word,
+    ImmutableList<string> InnerWords
+) : SyntacticScope()
+{
+    public static readonly WordSyntacticScope Initial = new WordSyntacticScope(null!, ImmutableList<string>.Empty);
+
+    public WordSyntacticScope SetWord(string word) => this with { Word = word };
+
+    public WordSyntacticScope AddInnerWord(string innerWord) => this with { InnerWords = InnerWords.Add(innerWord) };
+}

@@ -15,6 +15,9 @@ public static class MachineBuilder
         AddOperations(start);
         AddIfElseThen(start, builder);
         AddBeginUntil(start);
+        DefineWord(start);
+
+        start.AllOtherTransits().WithReducingBy(ExecWord(start.Id));
         
         start.TransitsBy("END").WithReducingBy(NoOp).ToAccepted();
         
@@ -24,8 +27,6 @@ public static class MachineBuilder
             .Build()
             .Match(automaton => automaton, error => throw new Exception($"Error: {error}."));
     }
-
-    private static bool IsNumber(string word) => decimal.TryParse(word, CultureInfo.InvariantCulture, out var _);
 
     private static void AddOperations(State<string, MachineState> state)
     {
@@ -80,4 +81,18 @@ public static class MachineBuilder
 
         state.TransitsBy("UNTIL").WithReducingBy(Until).ToSelf();
     }
+
+    private static void DefineWord(State<string, MachineState> state)
+    {
+        var startWordDefinitionState = state.TransitsBy(":").WithReducingBy(StartWordDefinition).ToNew();
+        
+        var beginWordState = startWordDefinitionState.TransitsWhen(IsNewWord).WithReducingBy(BeginWord).ToNew();
+        beginWordState.AllOtherTransits().WithReducingBy(AddInnerWord(beginWordState.Id));
+        
+        beginWordState.TransitsBy(";").WithReducingBy(FinishWordDefinition).To(state);
+    }
+
+    private static bool IsNumber(string word) => decimal.TryParse(word, CultureInfo.InvariantCulture, out var _);
+
+    private static bool IsNewWord(string word) => !IsNumber(word);
 }

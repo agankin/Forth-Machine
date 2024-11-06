@@ -51,6 +51,10 @@ public record MachineState(
         return newState;
     }
 
+    public MachineState NewWord(string word, ImmutableList<string> innerWord) => Map(
+        state => state with { DefinedWords = DefinedWords.Add(word, innerWord) }
+    );
+
     public MachineState SetError(string error) => Map(
         state => state with { Error = error }
     );
