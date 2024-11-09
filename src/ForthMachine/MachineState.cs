@@ -41,7 +41,7 @@ public record MachineState(
 
     public MachineState PopScope(out SyntacticScope scope)
     {
-        SyntacticScope localScope = new NoneSyntacticScope();
+        SyntacticScope localScope = new NoneScope();
         var newState = Map(state => SyntacticScopeStack.IsEmpty
             ? state
             : state with { SyntacticScopeStack = SyntacticScopeStack.Pop(out localScope) }

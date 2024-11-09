@@ -4,9 +4,27 @@ using PureMonads;
 
 namespace ForthMachine;
 
-public static class MachineErrorFormatter
+public static class ReplWriter
 {
-    public static string Format(this AutomatonError<string, MachineState> error)
+    public static void PrintOk(long execTimeMS) => Print($"Ok. {execTimeMS} ms.", ConsoleColor.Green);
+    
+    public static void PrintError(AutomatonError<string, MachineState> error) => Print(error.Format(), ConsoleColor.Red);
+
+    private static void Print(string line, ConsoleColor color)
+    {
+        var prevColor = Console.ForegroundColor;
+        try
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(line);
+        }
+        finally
+        {
+            Console.ForegroundColor = prevColor;
+        }
+    }
+
+    private static string Format(this AutomatonError<string, MachineState> error)
     {
         var stringBuilder = new StringBuilder();
 
