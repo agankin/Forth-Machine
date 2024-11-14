@@ -4,24 +4,18 @@ namespace ForthMachine;
 
 public static class BeginLoopOperations
 {
-    public static ReductionResult<string, MachineState> Begin(MachineState state, string _) =>
+    public static ReductionResult<string, MachineState> BeginLoop(MachineState state, string _) =>
         state.PushScope(BeginLoopScope.Empty);
 
-    public static Reduce<string, MachineState> BeginLoop(StateId gotoStateId)
+    public static ReductionResult<string, MachineState> AddInnerWord(MachineState state, string word)
     {
-        return (MachineState state, string word) =>
-        {
-            var state2 = state.PopScope(out SyntacticScope scope);
-            var beginScope = (BeginLoopScope)scope;
-            
-            var state3 = state2.PushScope(beginScope.AddWord(word));
-
-            return new ReductionResult<string, MachineState>(state3)
-                .DynamiclyGoTo(gotoStateId);
-        };
+        var state2 = state.PopScope(out SyntacticScope scope);
+        var beginScope = (BeginLoopScope)scope;
+        
+        return state2.PushScope(beginScope.AddWord(word));
     }
 
-    public static ReductionResult<string, MachineState> BeginFinish(MachineState state, string _)
+    public static ReductionResult<string, MachineState> EndLoop(MachineState state, string _)
     {
         var state2 = state.PopScope(out SyntacticScope scope);
         var beginScope = (BeginLoopScope)scope;
@@ -33,11 +27,11 @@ public static class BeginLoopOperations
         return result;
     }
 
-    public static ReductionResult<string, MachineState> Until(MachineState state, string _)
+    public static ReductionResult<string, MachineState> Repeat(MachineState state, string _)
     {
         var state2 = state.PopScope(out SyntacticScope scope);
         if (scope is not BeginLoopScope beginScope)
-            return state2.SetError("Unexpected UNTIL.");
+            return state2.SetError("Unexpected 'UNTIL' word.");
 
         var state3 = state2.Pop(out bool condition);
         if (state3.Error.HasValue)

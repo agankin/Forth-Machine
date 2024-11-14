@@ -2,7 +2,7 @@ using DFAutomaton;
 
 namespace ForthMachine;
 
-public static class CmpOperations
+public static class CompareOperations
 {
     public static ReductionResult<string, MachineState> Eq(MachineState state, string _) =>
         state.Pop(out var value2).Pop(out var value1)

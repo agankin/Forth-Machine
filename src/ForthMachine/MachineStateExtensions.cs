@@ -11,11 +11,11 @@ public static class MachineStateExtensions
     public static MachineState Pop(this MachineState state, out decimal value)
     {
         decimal valueLocal = 0;
-        var nextState = state.Pop(out var machinValue)
+        var nextState = state.Pop(out var machineValue)
             .Map(state =>
             {
-                if (machinValue is not NumberValue numberValue)
-                    return state.SetError($"{machinValue} is not number.");
+                if (machineValue is not NumberValue numberValue)
+                    return state.SetError($"{machineValue} is not number.");
 
                 valueLocal = numberValue.Value;
                 return state;

@@ -11,11 +11,11 @@ public static class MachineBuilder
         var start = builder.Start;
         
         AddOperations(start);
-        AddIfElseThen(start, builder);
-        AddBeginUntil(start);
-        DefineWord(start);
+        AddIf(start, builder);
+        AddBeginLoop(start);
+        AddWordDefinition(start);
 
-        start.AllOtherTransits().WithReducingBy(WordOperations.ExecWord(start.Id));
+        start.AllOtherTransits().WithReducingBy(DefineWordOperations.ExecWord).ToSelf();
         
         start.TransitsBy("END").WithReducingBy(NoOperations.NoOp).ToAccepted();
         
@@ -41,12 +41,12 @@ public static class MachineBuilder
         state.TransitsBy("NEG").WithReducingBy(MathOperations.Neg).ToSelf();
         state.TransitsBy("ABS").WithReducingBy(MathOperations.Abs).ToSelf();
         
-        state.TransitsBy("=").WithReducingBy(CmpOperations.Eq).ToSelf();
-        state.TransitsBy("<>").WithReducingBy(CmpOperations.NotEq).ToSelf();
-        state.TransitsBy("<").WithReducingBy(CmpOperations.Less).ToSelf();
-        state.TransitsBy("<=").WithReducingBy(CmpOperations.LessOrEq).ToSelf();
-        state.TransitsBy(">").WithReducingBy(CmpOperations.Greater).ToSelf();
-        state.TransitsBy(">=").WithReducingBy(CmpOperations.GreaterOrEq).ToSelf();
+        state.TransitsBy("=").WithReducingBy(CompareOperations.Eq).ToSelf();
+        state.TransitsBy("<>").WithReducingBy(CompareOperations.NotEq).ToSelf();
+        state.TransitsBy("<").WithReducingBy(CompareOperations.Less).ToSelf();
+        state.TransitsBy("<=").WithReducingBy(CompareOperations.LessOrEq).ToSelf();
+        state.TransitsBy(">").WithReducingBy(CompareOperations.Greater).ToSelf();
+        state.TransitsBy(">=").WithReducingBy(CompareOperations.GreaterOrEq).ToSelf();
         
         state.TransitsBy("DEPTH").WithReducingBy(StackOperations.Depth).ToSelf();
         state.TransitsBy("DUP").WithReducingBy(StackOperations.Dup).ToSelf();
@@ -58,35 +58,39 @@ public static class MachineBuilder
         state.TransitsBy("SCOPE-STACK").WithReducingBy(PrintOperations.ScopeStack).ToSelf();
     }
 
-    private static void AddIfElseThen(State<string, MachineState> state, AutomatonBuilder<string, MachineState> builder)
+    private static void AddIf(State<string, MachineState> state, AutomatonBuilder<string, MachineState> builder)
     {
         var noOpState = builder.CreateState();
-        noOpState.TransitsBy("ELSE").Dynamicly().WithReducingBy(IfOperations.Else(state.Id));
-        noOpState.TransitsBy("THEN").WithReducingBy(IfOperations.Then).To(state);
-        noOpState.AllOtherTransits().WithReducingBy(NoOperations.NoOp(noOpState.Id));
+        noOpState.TransitsBy("ELSE").Dynamicly().WithReducingBy(IfOperations.BeginElse(state.Id));
+        noOpState.TransitsBy("THEN").WithReducingBy(IfOperations.EndIf).To(state);
+        noOpState.AllOtherTransits().WithReducingBy(NoOperations.NoOp).ToSelf();
         
-        state.TransitsBy("IF").Dynamicly().WithReducingBy(IfOperations.If(state.Id, noOpState.Id));
-        state.TransitsBy("ELSE").Dynamicly().WithReducingBy(IfOperations.Else(noOpState.Id));
-        state.TransitsBy("THEN").WithReducingBy(IfOperations.Then).ToSelf();
+        state.TransitsBy("IF").Dynamicly().WithReducingBy(IfOperations.BeginIf(state.Id, noOpState.Id));
+        state.TransitsBy("ELSE").Dynamicly().WithReducingBy(IfOperations.BeginElse(noOpState.Id));
+        state.TransitsBy("THEN").WithReducingBy(IfOperations.EndIf).ToSelf();
     }
 
-    private static void AddBeginUntil(State<string, MachineState> state)
+    private static void AddBeginLoop(State<string, MachineState> state)
     {
-        var beginState = state.TransitsBy("BEGIN").WithReducingBy(BeginLoopOperations.Begin).ToNew();
-        beginState.TransitsBy("UNTIL").WithReducingBy(BeginLoopOperations.BeginFinish).To(state);
-        beginState.AllOtherTransits().WithReducingBy(BeginLoopOperations.BeginLoop(beginState.Id));
+        var beginState = state.TransitsBy("BEGIN").WithReducingBy(BeginLoopOperations.BeginLoop).ToNew();
+        beginState.TransitsBy("UNTIL").WithReducingBy(BeginLoopOperations.EndLoop).To(state);
+        beginState.AllOtherTransits().WithReducingBy(BeginLoopOperations.AddInnerWord).ToSelf();
 
-        state.TransitsBy("UNTIL").WithReducingBy(BeginLoopOperations.Until).ToSelf();
+        state.TransitsBy("UNTIL").WithReducingBy(BeginLoopOperations.Repeat).ToSelf();
     }
 
-    private static void DefineWord(State<string, MachineState> state)
+    private static void AddWordDefinition(State<string, MachineState> state)
     {
-        var startWordDefinitionState = state.TransitsBy(":").WithReducingBy(WordOperations.StartWordDefinition).ToNew();
+        var startWordDefinitionState = state.TransitsBy(":")
+            .WithReducingBy(DefineWordOperations.BeginWordDefinition)
+            .ToNew();
         
-        var beginWordState = startWordDefinitionState.TransitsWhen(IsNewWord).WithReducingBy(WordOperations.BeginWord).ToNew();
-        beginWordState.AllOtherTransits().WithReducingBy(WordOperations.AddInnerWord(beginWordState.Id));
+        var beginWordState = startWordDefinitionState.TransitsWhen(IsNewWord).WithReducingBy(DefineWordOperations.SetWord).ToNew();
+        beginWordState.AllOtherTransits().WithReducingBy(DefineWordOperations.AddInnerWord).ToSelf();
         
-        beginWordState.TransitsBy(";").WithReducingBy(WordOperations.FinishWordDefinition).To(state);
+        beginWordState.TransitsBy(";")
+            .WithReducingBy(DefineWordOperations.EndWordDefinition)
+            .To(state);
     }
 
     private static bool IsNumber(string word) => decimal.TryParse(word, CultureInfo.InvariantCulture, out var _);

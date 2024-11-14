@@ -27,7 +27,7 @@ public record MachineState(
     {
         MachineValue? localValue = null;
         var newState = Map(state => Stack.IsEmpty
-            ? state.SetError("Stack is empty!")
+            ? state.SetError("Stack is empty.")
             : state with { Stack = Stack.Pop(out localValue) }
         );
 
