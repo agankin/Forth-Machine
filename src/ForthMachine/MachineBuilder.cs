@@ -13,6 +13,7 @@ public static class MachineBuilder
         AddOperations(start);
         AddIf(start, builder);
         AddBeginLoop(start);
+        AddDoLoop(start);
         AddWordDefinition(start);
 
         start.AllOtherTransits().WithReducingBy(DefineWordOperations.ExecWord).ToSelf();
@@ -77,6 +78,15 @@ public static class MachineBuilder
         beginState.AllOtherTransits().WithReducingBy(BeginLoopOperations.AddInnerWord).ToSelf();
 
         state.TransitsBy("UNTIL").WithReducingBy(BeginLoopOperations.Repeat).ToSelf();
+    }
+
+    private static void AddDoLoop(State<string, MachineState> state)
+    {
+        var beginState = state.TransitsBy("DO").WithReducingBy(DoLoopOperations.BeginLoop).ToNew();
+        beginState.TransitsBy("LOOP").WithReducingBy(DoLoopOperations.EndLoop).To(state);
+        beginState.AllOtherTransits().WithReducingBy(DoLoopOperations.AddInnerWord).ToSelf();
+
+        state.TransitsBy("LOOP").WithReducingBy(DoLoopOperations.Repeat).ToSelf();
     }
 
     private static void AddWordDefinition(State<string, MachineState> state)
