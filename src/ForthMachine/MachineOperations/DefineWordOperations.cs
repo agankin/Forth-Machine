@@ -32,7 +32,7 @@ public static class DefineWordOperations
             return state2.SetError("Unexpected ';' word.");
 
         var (word, innerWord) = wordScope;
-        return state2.NewWord(word, innerWord);
+        return state2.AddWord(word, innerWord);
     }
 
     public static ReductionResult<string, MachineState> ExecWord(MachineState state, string word)

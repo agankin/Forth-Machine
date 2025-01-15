@@ -28,11 +28,11 @@ public static class MachineStateExtensions
     public static MachineState Pop(this MachineState state, out bool value)
     {
         bool valueLocal = false;
-        var nextState = state.Pop(out var machinValue)
+        var nextState = state.Pop(out var machineValue)
             .Map(state =>
             {
-                if (machinValue is not BooleanValue boolValue)
-                    return state.SetError($"{machinValue} is not boolean.");
+                if (machineValue is not BooleanValue boolValue)
+                    return state.SetError($"{machineValue} is not boolean.");
 
                 valueLocal = boolValue.Value;
                 return state;
@@ -50,4 +50,6 @@ public static class MachineStateExtensions
 
         return nextState;
     }
+
+    public static bool Valid(this MachineState machineState) => !machineState.Error.HasValue;
 }

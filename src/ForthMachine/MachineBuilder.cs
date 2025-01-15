@@ -22,7 +22,7 @@ public static class MachineBuilder
         
         return builder
             .ValidateAnyCanReachAccepted()
-            .AddCheckForErrorState(state => state.Error.HasValue)
+            .AddCheckForErrorState(state => !state.Valid())
             .Build()
             .Match(automaton => automaton, error => throw new Exception($"Error: {error}."));
     }

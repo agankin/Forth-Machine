@@ -7,14 +7,14 @@ using static Option;
 
 public record MachineState(
     ImmutableStack<MachineValue> Stack,
-    ImmutableStack<SyntacticScope> SyntacticScopeStack,
+    SyntacticScopeStack SyntacticScopeStack,
     ImmutableDictionary<string, ImmutableList<string>> DefinedWords,
     Option<string> Error
 )
 {
     public static MachineState Initial => new MachineState(
         Stack: ImmutableStack<MachineValue>.Empty,
-        SyntacticScopeStack: ImmutableStack<SyntacticScope>.Empty,
+        SyntacticScopeStack: new SyntacticScopeStack(new NoneScope()),
         DefinedWords: ImmutableDictionary<string, ImmutableList<string>>.Empty,
         Error: None<string>()
     );
@@ -35,6 +35,18 @@ public record MachineState(
         return newState;
     }
 
+    public MachineState MapScope(Func<SyntacticScopeStack, SyntacticScopeStack> map) => Map(
+        state => state with { SyntacticScopeStack = map(SyntacticScopeStack) }
+    );
+
+    public MachineState MapScope(Func<SyntacticScopeStack, Result<SyntacticScopeStack, string>> map) => Map(
+        state => map(state.SyntacticScopeStack)
+            .Match(
+                nextScopeStack => state with { SyntacticScopeStack = nextScopeStack },
+                state.SetError
+            )
+    );
+
     public MachineState PushScope(SyntacticScope scope) => Map(
         state => state with { SyntacticScopeStack = SyntacticScopeStack.Push(scope) }
     );
@@ -42,16 +54,13 @@ public record MachineState(
     public MachineState PopScope(out SyntacticScope scope)
     {
         SyntacticScope localScope = new NoneScope();
-        var newState = Map(state => SyntacticScopeStack.IsEmpty
-            ? state
-            : state with { SyntacticScopeStack = SyntacticScopeStack.Pop(out localScope) }
-        );
+        var nextState = Map(state => state with { SyntacticScopeStack = SyntacticScopeStack.Pop(out localScope) });
 
         scope = localScope;
-        return newState;
+        return nextState;
     }
 
-    public MachineState NewWord(string word, ImmutableList<string> innerWord) => Map(
+    public MachineState AddWord(string word, ImmutableList<string> innerWord) => Map(
         state => state with { DefinedWords = DefinedWords.Add(word, innerWord) }
     );
 

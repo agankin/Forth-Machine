@@ -30,7 +30,7 @@ public static class BeginLoopOperations
             return state2.SetError("Unexpected 'UNTIL' word.");
 
         var state3 = state2.Pop(out bool condition);
-        if (state3.Error.HasValue)
+        if (!state3.Valid())
             return state3;
 
         if (condition)

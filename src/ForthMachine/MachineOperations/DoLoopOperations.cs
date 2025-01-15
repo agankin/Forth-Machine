@@ -19,9 +19,10 @@ public static class DoLoopOperations
 
     public static ReductionResult<string, MachineState> EndLoop(MachineState state, string _)
     {
-        var state2 = state.PopScope(out DoLoopScope doLoopScope);
+        ReductionResult<string, MachineState> result = state
+            .PopScope(out DoLoopScope doLoopScope)
+            .PushScope(doLoopScope);
         
-        var result = new ReductionResult<string, MachineState>(state2.PushScope(doLoopScope));
         foreach (var word in doLoopScope.LoopWords.Append("LOOP"))
             result.YieldNext(word);
         
