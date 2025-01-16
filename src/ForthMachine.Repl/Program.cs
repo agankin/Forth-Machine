@@ -1,5 +1,6 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using ForthMachine;
+using ForthMachine.Repl;
 using PureMonads;
 
 var machine = MachineBuilder.Build();

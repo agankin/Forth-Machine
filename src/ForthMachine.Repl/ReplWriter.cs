@@ -2,7 +2,7 @@ using System.Text;
 using DFAutomaton;
 using PureMonads;
 
-namespace ForthMachine;
+namespace ForthMachine.Repl;
 
 public static class ReplWriter
 {

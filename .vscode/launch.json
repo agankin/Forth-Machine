@@ -6,7 +6,7 @@
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceFolder}/src/ForthMachine/bin/Debug/net8.0/ForthMachine.dll",
+            "program": "${workspaceFolder}/src/ForthMachine.Repl/bin/Debug/net8.0/ForthMachine.Repl.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "console": "externalTerminal",

@@ -1,4 +1,4 @@
-namespace ForthMachine;
+namespace ForthMachine.Repl;
 
 public static class ReplReader
 {

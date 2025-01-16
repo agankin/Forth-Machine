@@ -103,7 +103,8 @@ public static class MachineBuilder
             .To(state);
     }
 
-    private static bool IsNumber(string word) => decimal.TryParse(word, CultureInfo.InvariantCulture, out var _);
+    private static bool IsNumber(string word) =>
+        decimal.TryParse(word, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var _);
 
     private static bool IsNewWord(string word) => !IsNumber(word);
 }
