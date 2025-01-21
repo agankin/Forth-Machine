@@ -7,28 +7,28 @@ public static class DefineWordOperations
     public static ReductionResult<string, MachineState> BeginWordDefinition(MachineState state, string _)
     {
         state.PopScope(out var scope);
-        if (scope is not NoneScope)
+        if (scope is not RootScopeState)
             return state.SetError($"Unexpected ':' word.");
 
-        return state.PushScope(WordDefinitionScope.Initial);
+        return state.PushScope(WordScopeState.Initial);
     }
 
     public static ReductionResult<string, MachineState> SetWord(MachineState state, string word) =>
-        state.PopScope(out WordDefinitionScope scope).PushScope(scope.SetWord(word));
+        state.PopScope(out WordScopeState scope).PushScope(scope.SetWord(word));
 
     public static ReductionResult<string, MachineState> AddInnerWord(MachineState state, string word)
     {
         if (word == ":")
             return state.SetError($"Unexpected ':' word.");
 
-        return state.PopScope(out WordDefinitionScope scope)
+        return state.PopScope(out WordScopeState scope)
             .PushScope(scope.AddInnerWord(word));
     }
 
     public static ReductionResult<string, MachineState> EndWordDefinition(MachineState state, string _)
     {
-        var state2 = state.PopScope(out SyntacticScope scope);
-        if (scope is not WordDefinitionScope wordScope)
+        var state2 = state.PopScope(out ScopeState scope);
+        if (scope is not WordScopeState wordScope)
             return state2.SetError("Unexpected ';' word.");
 
         var (word, innerWord) = wordScope;

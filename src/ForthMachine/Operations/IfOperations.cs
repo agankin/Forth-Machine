@@ -8,7 +8,7 @@ public static class IfOperations
     {
         return (MachineState machineState, string _) =>
         {
-            var nextMachineState = machineState.Pop(out bool condition).PushScope(new IfScope());
+            var nextMachineState = machineState.Pop(out bool condition).PushScope(new IfScopeState());
                 return new ReductionResult<string, MachineState>(nextMachineState)
                     .DynamiclyGoTo(condition ? trueStateId : falseStateId);
         };
@@ -18,10 +18,10 @@ public static class IfOperations
     {
         return (MachineState state, string _) =>
         {
-            var nextState = state.PopScope(out SyntacticScope scope);
+            var nextState = state.PopScope(out ScopeState scope);
 
-            return scope is IfScope
-                ? new ReductionResult<string, MachineState>(nextState.PushScope(new ElseScope()))
+            return scope is IfScopeState
+                ? new ReductionResult<string, MachineState>(nextState.PushScope(new ElseScopeState()))
                     .DynamiclyGoTo(elseStateId)
                 : state.SetError("Unexpected 'ELSE' word.");
         };
@@ -29,9 +29,9 @@ public static class IfOperations
 
     public static ReductionResult<string, MachineState> EndIf(MachineState state, string _)
     {
-        var nextState = state.PopScope(out SyntacticScope scope);
+        var nextState = state.PopScope(out ScopeState scope);
 
-        return scope is IfScope || scope is ElseScope
+        return scope is IfScopeState || scope is ElseScopeState
             ? nextState
             : state.SetError("Unexpected 'THEN' word.");
     }

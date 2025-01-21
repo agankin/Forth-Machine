@@ -14,7 +14,7 @@ public record MachineState(
 {
     public static MachineState Initial => new MachineState(
         Stack: ImmutableStack<MachineValue>.Empty,
-        SyntacticScopeStack: new SyntacticScopeStack(new NoneScope()),
+        SyntacticScopeStack: new SyntacticScopeStack(new RootScopeState()),
         DefinedWords: ImmutableDictionary<string, ImmutableList<string>>.Empty,
         Error: None<string>()
     );
@@ -47,13 +47,13 @@ public record MachineState(
             )
     );
 
-    public MachineState PushScope(SyntacticScope scope) => Map(
+    public MachineState PushScope(ScopeState scope) => Map(
         state => state with { SyntacticScopeStack = SyntacticScopeStack.Push(scope) }
     );
 
-    public MachineState PopScope(out SyntacticScope scope)
+    public MachineState PopScope(out ScopeState scope)
     {
-        SyntacticScope localScope = new NoneScope();
+        ScopeState localScope = new RootScopeState();
         var nextState = Map(state => state with { SyntacticScopeStack = SyntacticScopeStack.Pop(out localScope) });
 
         scope = localScope;

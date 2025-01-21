@@ -43,9 +43,9 @@ public static class MachineStateExtensions
     }
 
     public static MachineState PopScope<TScope>(this MachineState state, out TScope scope)
-        where TScope : SyntacticScope
+        where TScope : ScopeState
     {
-        var nextState = state.PopScope(out SyntacticScope value);
+        var nextState = state.PopScope(out ScopeState value);
         scope = (TScope)value;
 
         return nextState;

@@ -9,18 +9,18 @@ public static class DoLoopOperations
         return state
             .Pop(out decimal index)
             .Pop(out decimal limit)
-            .PushScope(DoLoopScope.Create((int)index, (int)limit));
+            .PushScope(DoScopeState.Create((int)index, (int)limit));
     }
 
     public static ReductionResult<string, MachineState> AddInnerWord(MachineState state, string word) =>
         state
-            .PopScope(out DoLoopScope doLoopScope)
+            .PopScope(out DoScopeState doLoopScope)
             .PushScope(doLoopScope.AddWord(word));
 
     public static ReductionResult<string, MachineState> EndLoop(MachineState state, string _)
     {
         ReductionResult<string, MachineState> result = state
-            .PopScope(out DoLoopScope doLoopScope)
+            .PopScope(out DoScopeState doLoopScope)
             .PushScope(doLoopScope);
         
         foreach (var word in doLoopScope.LoopWords.Append("LOOP"))
@@ -31,8 +31,8 @@ public static class DoLoopOperations
 
     public static ReductionResult<string, MachineState> Repeat(MachineState state, string _)
     {
-        var state2 = state.PopScope(out SyntacticScope scope);
-        if (scope is not DoLoopScope doLoopScope)
+        var state2 = state.PopScope(out ScopeState scope);
+        if (scope is not DoScopeState doLoopScope)
             return state2.SetError("Unexpected 'LOOP' word.");
 
         if (doLoopScope.ReachedLimit())

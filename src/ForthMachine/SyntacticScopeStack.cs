@@ -3,17 +3,17 @@ using System.Collections.Immutable;
 
 namespace ForthMachine;
 
-public record SyntacticScopeStack : IEnumerable<SyntacticScope>
+public record SyntacticScopeStack : IEnumerable<ScopeState>
 {
-    public SyntacticScopeStack(SyntacticScope rootScope) => RootScope = rootScope;
+    public SyntacticScopeStack(ScopeState rootScope) => RootScope = rootScope;
 
-    private ImmutableStack<SyntacticScope> InternalStack { get; init; } = ImmutableStack<SyntacticScope>.Empty;
+    private ImmutableStack<ScopeState> InternalStack { get; init; } = ImmutableStack<ScopeState>.Empty;
 
-    private SyntacticScope RootScope { get; init; }
+    private ScopeState RootScope { get; init; }
 
-    public SyntacticScopeStack Push(SyntacticScope scope) => this with { InternalStack = InternalStack.Push(scope) };
+    public SyntacticScopeStack Push(ScopeState scope) => this with { InternalStack = InternalStack.Push(scope) };
 
-    public SyntacticScopeStack Pop(out SyntacticScope scope)
+    public SyntacticScopeStack Pop(out ScopeState scope)
     {
         scope = RootScope;
 
@@ -22,7 +22,7 @@ public record SyntacticScopeStack : IEnumerable<SyntacticScope>
             : this with { InternalStack = InternalStack.Pop(out scope) };
     }
 
-    public IEnumerator<SyntacticScope> GetEnumerator() => ((IEnumerable<SyntacticScope>)InternalStack).GetEnumerator();
+    public IEnumerator<ScopeState> GetEnumerator() => ((IEnumerable<ScopeState>)InternalStack).GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }
