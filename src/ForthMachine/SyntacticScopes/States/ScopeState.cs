@@ -1,3 +1,3 @@
 namespace ForthMachine;
 
-internal abstract record ScopeState();
+public abstract record ScopeState();

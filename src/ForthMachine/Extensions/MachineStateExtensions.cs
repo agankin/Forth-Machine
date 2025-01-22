@@ -1,6 +1,6 @@
 namespace ForthMachine;
 
-public static class MachineStateExtensions
+internal static class MachineStateExtensions
 {
     public static MachineState Push(this MachineState state, decimal value) =>
         state.Push(new NumberValue(value));

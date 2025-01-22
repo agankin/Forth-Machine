@@ -6,8 +6,7 @@ using PureMonads;
 var machine = MachineBuilder.Build();
 var initialState = MachineState.Initial;
 
-ReplReader.ReadInLoop("bye")
-    .Select(ReplParser.Parse)
+new ReplReader("bye").ReadInLoop()
     .Aggregate(initialState, Run);
 
 MachineState Run(MachineState state, IEnumerable<string> words)

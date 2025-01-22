@@ -6,9 +6,13 @@ namespace ForthMachine.Repl;
 
 public static class ReplWriter
 {
+    public static void Prompt() => Console.Write("> ");
+
     public static void PrintOk(long execTimeMS) => Print($"Ok. {execTimeMS} ms.", ConsoleColor.Green);
     
-    public static void PrintError(AutomatonError<string, MachineState> error) => Print(error.Format(), ConsoleColor.Red);
+    public static void PrintError(AutomatonError<string, MachineState> error) => PrintError(error.Format());
+    
+    public static void PrintError(string error) => Print(error, ConsoleColor.Red);
 
     private static void Print(string line, ConsoleColor color)
     {

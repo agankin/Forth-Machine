@@ -7,14 +7,14 @@ using static Option;
 
 public record MachineState(
     ImmutableStack<MachineValue> Stack,
-    SyntacticScopeStack SyntacticScopeStack,
+    ImmutableStack<ScopeState> SyntacticScopeStack,
     ImmutableDictionary<string, ImmutableList<string>> DefinedWords,
     Option<string> Error
 )
 {
     public static MachineState Initial => new MachineState(
         Stack: ImmutableStack<MachineValue>.Empty,
-        SyntacticScopeStack: new SyntacticScopeStack(new RootScopeState()),
+        SyntacticScopeStack: ImmutableStack<ScopeState>.Empty,
         DefinedWords: ImmutableDictionary<string, ImmutableList<string>>.Empty,
         Error: None<string>()
     );
@@ -35,11 +35,11 @@ public record MachineState(
         return newState;
     }
 
-    public MachineState MapScope(Func<SyntacticScopeStack, SyntacticScopeStack> map) => Map(
+    public MachineState MapScope(Func<ImmutableStack<ScopeState>, ImmutableStack<ScopeState>> map) => Map(
         state => state with { SyntacticScopeStack = map(SyntacticScopeStack) }
     );
 
-    public MachineState MapScope(Func<SyntacticScopeStack, Result<SyntacticScopeStack, string>> map) => Map(
+    public MachineState MapScope(Func<ImmutableStack<ScopeState>, Result<ImmutableStack<ScopeState>, string>> map) => Map(
         state => map(state.SyntacticScopeStack)
             .Match(
                 nextScopeStack => state with { SyntacticScopeStack = nextScopeStack },
@@ -54,7 +54,11 @@ public record MachineState(
     public MachineState PopScope(out ScopeState scope)
     {
         ScopeState localScope = new RootScopeState();
-        var nextState = Map(state => state with { SyntacticScopeStack = SyntacticScopeStack.Pop(out localScope) });
+        var nextState = Map(state =>
+            state with
+            {
+                SyntacticScopeStack = SyntacticScopeStack.PopOrDefault(RootScopeState.Instance, out localScope)
+            });
 
         scope = localScope;
         return nextState;

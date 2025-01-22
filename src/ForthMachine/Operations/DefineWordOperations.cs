@@ -18,7 +18,7 @@ public static class DefineWordOperations
 
     public static ReductionResult<string, MachineState> AddInnerWord(MachineState state, string word)
     {
-        if (word == ":")
+        if (word == MachineWords.BeginWord)
             return state.SetError($"Unexpected ':' word.");
 
         return state.PopScope(out WordScopeState scope)

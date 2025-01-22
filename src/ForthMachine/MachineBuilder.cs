@@ -62,43 +62,43 @@ public static class MachineBuilder
     private static void AddIf(State<string, MachineState> state, AutomatonBuilder<string, MachineState> builder)
     {
         var noOpState = builder.CreateState();
-        noOpState.TransitsBy("ELSE").Dynamicly().WithReducingBy(IfOperations.BeginElse(state.Id));
-        noOpState.TransitsBy("THEN").WithReducingBy(IfOperations.EndIf).To(state);
+        noOpState.TransitsBy(MachineWords.Else).Dynamicly().WithReducingBy(IfOperations.BeginElse(state.Id));
+        noOpState.TransitsBy(MachineWords.Then).WithReducingBy(IfOperations.EndIf).To(state);
         noOpState.AllOtherTransits().WithReducingBy(NoOperations.NoOp).ToSelf();
         
-        state.TransitsBy("IF").Dynamicly().WithReducingBy(IfOperations.BeginIf(state.Id, noOpState.Id));
-        state.TransitsBy("ELSE").Dynamicly().WithReducingBy(IfOperations.BeginElse(noOpState.Id));
-        state.TransitsBy("THEN").WithReducingBy(IfOperations.EndIf).ToSelf();
+        state.TransitsBy(MachineWords.If).Dynamicly().WithReducingBy(IfOperations.BeginIf(state.Id, noOpState.Id));
+        state.TransitsBy(MachineWords.Else).Dynamicly().WithReducingBy(IfOperations.BeginElse(noOpState.Id));
+        state.TransitsBy(MachineWords.Then).WithReducingBy(IfOperations.EndIf).ToSelf();
     }
 
     private static void AddBeginLoop(State<string, MachineState> state)
     {
-        var beginState = state.TransitsBy("BEGIN").WithReducingBy(BeginLoopOperations.BeginLoop).ToNew();
-        beginState.TransitsBy("UNTIL").WithReducingBy(BeginLoopOperations.EndLoop).To(state);
+        var beginState = state.TransitsBy(MachineWords.Begin).WithReducingBy(BeginLoopOperations.BeginLoop).ToNew();
+        beginState.TransitsBy(MachineWords.Until).WithReducingBy(BeginLoopOperations.EndLoop).To(state);
         beginState.AllOtherTransits().WithReducingBy(BeginLoopOperations.AddInnerWord).ToSelf();
 
-        state.TransitsBy("UNTIL").WithReducingBy(BeginLoopOperations.Repeat).ToSelf();
+        state.TransitsBy(MachineWords.Until).WithReducingBy(BeginLoopOperations.Repeat).ToSelf();
     }
 
     private static void AddDoLoop(State<string, MachineState> state)
     {
-        var beginState = state.TransitsBy("DO").WithReducingBy(DoLoopOperations.BeginLoop).ToNew();
-        beginState.TransitsBy("LOOP").WithReducingBy(DoLoopOperations.EndLoop).To(state);
+        var beginState = state.TransitsBy(MachineWords.Do).WithReducingBy(DoLoopOperations.BeginLoop).ToNew();
+        beginState.TransitsBy(MachineWords.Loop).WithReducingBy(DoLoopOperations.EndLoop).To(state);
         beginState.AllOtherTransits().WithReducingBy(DoLoopOperations.AddInnerWord).ToSelf();
 
-        state.TransitsBy("LOOP").WithReducingBy(DoLoopOperations.Repeat).ToSelf();
+        state.TransitsBy(MachineWords.Loop).WithReducingBy(DoLoopOperations.Repeat).ToSelf();
     }
 
     private static void AddWordDefinition(State<string, MachineState> state)
     {
-        var startWordDefinitionState = state.TransitsBy(":")
+        var startWordDefinitionState = state.TransitsBy(MachineWords.BeginWord)
             .WithReducingBy(DefineWordOperations.BeginWordDefinition)
             .ToNew();
         
         var beginWordState = startWordDefinitionState.TransitsWhen(IsNewWord).WithReducingBy(DefineWordOperations.SetWord).ToNew();
         beginWordState.AllOtherTransits().WithReducingBy(DefineWordOperations.AddInnerWord).ToSelf();
         
-        beginWordState.TransitsBy(";")
+        beginWordState.TransitsBy(MachineWords.EndWord)
             .WithReducingBy(DefineWordOperations.EndWordDefinition)
             .To(state);
     }

@@ -9,8 +9,9 @@ public static class IfOperations
         return (MachineState machineState, string _) =>
         {
             var nextMachineState = machineState.Pop(out bool condition).PushScope(new IfScopeState());
-                return new ReductionResult<string, MachineState>(nextMachineState)
-                    .DynamiclyGoTo(condition ? trueStateId : falseStateId);
+            
+            return new ReductionResult<string, MachineState>(nextMachineState)
+                .DynamiclyGoTo(condition ? trueStateId : falseStateId);
         };
     }
     
