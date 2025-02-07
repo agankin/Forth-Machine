@@ -27,7 +27,7 @@ public record MachineState(
     {
         MachineValue? localValue = null;
         var newState = Map(state => Stack.IsEmpty
-            ? state.SetError("Stack is empty.")
+            ? state.SetError(MachineError.StackIsEmpty)
             : state with { Stack = Stack.Pop(out localValue) }
         );
 
@@ -50,7 +50,7 @@ public record MachineState(
     public MachineState PushScope(ScopeState scope) => Map(
         state => state with { SyntacticScopeStack = SyntacticScopeStack.Push(scope) }
     );
-
+    
     public MachineState PopScope(out ScopeState scope)
     {
         ScopeState localScope = new RootScopeState();
@@ -63,6 +63,8 @@ public record MachineState(
         scope = localScope;
         return nextState;
     }
+
+    public ScopeState PeekScope() => SyntacticScopeStack.PeekOrDefault(RootScopeState.Instance);
 
     public MachineState AddWord(string word, ImmutableList<string> innerWord) => Map(
         state => state with { DefinedWords = DefinedWords.Add(word, innerWord) }

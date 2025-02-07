@@ -6,16 +6,12 @@ public static class CompareOperations
 {
     public static ReductionResult<string, MachineState> Eq(MachineState state, string _) =>
         state.Pop(out var value2).Pop(out var value1)
-            .Map(state => value1?.GetType() == value2?.GetType()
-                ? state
-                : state.SetError($"Compared values {value2} and {value1} have different types."))
+            .FlattenError(() => CompatibilityChecker.Check(value1!, value2!))
             .Map(state => state.Push(value1 == value2));
 
     public static ReductionResult<string, MachineState> NotEq(MachineState state, string _) =>
         state.Pop(out var value2).Pop(out var value1)
-            .Map(state => value1?.GetType() == value2?.GetType()
-                ? state
-                : state.SetError($"Compared values {value2} and {value1} have different types."))
+            .FlattenError(() => CompatibilityChecker.Check(value1!, value2!))
             .Map(state => state.Push(value1 != value2));
 
     public static ReductionResult<string, MachineState> Less(MachineState state, string _) =>

@@ -14,4 +14,7 @@ public static class ImmutableStackExtensions
 
         return stack.Pop(out item);
     }
+
+    public static TItem PeekOrDefault<TItem>(this ImmutableStack<TItem> stack, TItem defaultItem) =>
+        stack.IsEmpty ? defaultItem : stack.Peek();
 }

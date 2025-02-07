@@ -22,6 +22,9 @@ public class ReplReader
 
             var result = ReadUserInput(scopeTracker, words)
                 .OnError(ReplWriter.PrintError);
+
+            if (!result.HasValue)
+                continue;
             
             if (!result.Value().Or(true))
                 yield break;
@@ -41,7 +44,7 @@ public class ReplReader
         words.AddRange(userInputWords);
 
         return trackingResult.Match(
-            scopeTracker => scopeTracker.Scopes.IsEmpty
+            scopeTracker => scopeTracker.IsEmpty
                 ? true
                 : ReadUserInput(scopeTracker, words),
             error => error

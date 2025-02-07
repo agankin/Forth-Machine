@@ -20,7 +20,7 @@ public static class MathOperations
         state.Pop(out decimal number2).Pop(out decimal number1)
             .Map(state => number2 != 0
                 ? state.Push(number1 / number2)
-                : state.SetError("Division by zero."));
+                : state.SetError(MachineError.DivisionByZero));
 
     public static ReductionResult<string, MachineState> Neg(MachineState state, string _) =>
         state.Pop(out decimal number)

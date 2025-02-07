@@ -1,22 +1,28 @@
 using System.Collections.Immutable;
+using PureMonads;
 
 namespace ForthMachine;
 
 internal record BeginScopeState(
-    ImmutableList<string> LoopWords,
-    int NestedLoops
+    ImmutableList<string> BodyWords,
+    SyntacticScopeTracker InnerScopeTracker
 ) : ScopeState()
 {
-    public static readonly BeginScopeState Empty = new(
+    public static readonly BeginScopeState Initial = new(
         ImmutableList<string>.Empty,
-        NestedLoops: 0
+        InnerScopeTracker: new()
     );
 
-    public BeginScopeState AddWord(string word) => this with { LoopWords = LoopWords.Add(word) };
+    public bool HasInnerScope => !InnerScopeTracker.Scopes.IsEmpty;
 
-    public BeginScopeState IncNestedLoops() => this with { NestedLoops = NestedLoops + 1 };
-
-    public BeginScopeState DecNestedLoops() => NestedLoops > 0
-        ? this with { NestedLoops = NestedLoops + 1 }
-        : throw new Exception("NestedLoops value cannot be less zero.");
+    public Result<BeginScopeState, string> AddBodyWord(string word)
+    {
+        return InnerScopeTracker.OnNextWord(word)
+            .Map(scopeTracker =>
+                this with
+                {
+                    BodyWords = BodyWords.Add(word),
+                    InnerScopeTracker = scopeTracker
+                });
+    }
 }

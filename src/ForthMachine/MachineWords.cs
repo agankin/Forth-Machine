@@ -1,6 +1,8 @@
+using System.Globalization;
+
 namespace ForthMachine;
 
-public static class MachineWords
+internal static class MachineWords
 {
     public const string If = "IF";
 
@@ -19,4 +21,9 @@ public static class MachineWords
     public const string BeginWord = ":";
 
     public const string EndWord = ";";
+
+    public static bool IsNumber(string word) =>
+        decimal.TryParse(word, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var _);
+
+    public static bool IsNewWord(string word) => !IsNumber(word);
 }

@@ -1,3 +1,5 @@
+using PureMonads;
+
 namespace ForthMachine;
 
 internal static class MachineStateExtensions
@@ -42,8 +44,21 @@ internal static class MachineStateExtensions
         return nextState;
     }
 
-    public static MachineState PopScope<TScope>(this MachineState state, out TScope scope)
+    public static MachineState MapTopScope<TScope>(this MachineState state, Func<TScope, TScope> map)
         where TScope : ScopeState
+    {
+        return state.PopScope(out TScope scope)
+            .Pipe(state => map(scope).Pipe(state.PushScope));
+    }
+    
+    public static MachineState FlatMapTopScope<TScope>(this MachineState state, Func<TScope, Result<TScope, string>> map)
+        where TScope : ScopeState
+    {
+        return state.PopScope(out TScope scope)
+            .Pipe(state => map(scope).Match(state.PushScope, state.SetError));
+    }
+    
+    public static MachineState PopScope<TScope>(this MachineState state, out TScope scope) where TScope : ScopeState
     {
         var nextState = state.PopScope(out ScopeState value);
         scope = (TScope)value;
@@ -51,5 +66,11 @@ internal static class MachineStateExtensions
         return nextState;
     }
 
-    public static bool Valid(this MachineState machineState) => !machineState.Error.HasValue;
+    public static bool Valid(this MachineState state) => !state.Error.HasValue;
+
+    public static MachineState FlattenError(this MachineState state, Func<Option<string>> getError) =>
+        state.Map(_ => getError().Match(state.SetError, () => state));
+
+    public static MachineState Unexpected(this MachineState state, string word) =>
+        state.SetError(MachineError.Unexpected(word));
 }

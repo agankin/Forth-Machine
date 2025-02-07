@@ -4,36 +4,36 @@ namespace ForthMachine;
 
 public static class IfOperations
 {
-    public static Reduce<string, MachineState> BeginIf(StateId trueStateId, StateId falseStateId)
+    public static Reduce<string, MachineState> If(StateId trueStateId, StateId falseStateId)
     {
         return (MachineState machineState, string _) =>
         {
-            var nextMachineState = machineState.Pop(out bool condition).PushScope(new IfScopeState());
+            var nextMachineState = machineState.Pop(out bool condition).PushScope(IfScopeState.Initial);
+            var goToStateId = condition ? trueStateId : falseStateId;
             
-            return new ReductionResult<string, MachineState>(nextMachineState)
-                .DynamiclyGoTo(condition ? trueStateId : falseStateId);
+            return new ReductionResult<string, MachineState>(nextMachineState).DynamiclyGoTo(goToStateId);
         };
     }
     
-    public static Reduce<string, MachineState> BeginElse(StateId elseStateId)
+    public static Reduce<string, MachineState> Else(StateId elseStateId)
     {
         return (MachineState state, string _) =>
         {
             var nextState = state.PopScope(out ScopeState scope);
+            if (scope is not IfScopeState ifScope)
+                return state.Unexpected(MachineWords.Else);
 
-            return scope is IfScopeState
-                ? new ReductionResult<string, MachineState>(nextState.PushScope(new ElseScopeState()))
-                    .DynamiclyGoTo(elseStateId)
-                : state.SetError("Unexpected 'ELSE' word.");
+            return new ReductionResult<string, MachineState>(nextState.PushScope(ElseScopeState.Initial))
+                .DynamiclyGoTo(elseStateId);
         };
     }
 
-    public static ReductionResult<string, MachineState> EndIf(MachineState state, string _)
+    public static ReductionResult<string, MachineState> Then(MachineState state, string _)
     {
         var nextState = state.PopScope(out ScopeState scope);
+        if (scope is not IfScopeState or ElseScopeState)
+            return state.Unexpected(MachineWords.Then);
 
-        return scope is IfScopeState || scope is ElseScopeState
-            ? nextState
-            : state.SetError("Unexpected 'THEN' word.");
+        return nextState;
     }
 }

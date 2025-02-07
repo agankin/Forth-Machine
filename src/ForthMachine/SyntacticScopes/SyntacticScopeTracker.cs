@@ -41,9 +41,7 @@ public readonly record struct SyntacticScopeTracker
         result.Map(tracker => tracker.Enter(scope));
 
     private TrackingResult Exit(string word, params SyntacticScope[] expectedScopes) =>
-        expectedScopes.Contains(Scopes.Peek())
-            ? this with { Scopes = Scopes.Pop(out var _) }
-            : Unexpected(word);
-
-    private static string Unexpected(string word) => $"Unexpected word: {word}.";
+        !Scopes.IsEmpty && expectedScopes.Contains(Scopes.Peek())
+            ? this with { Scopes = Scopes.Pop(out _) }
+            : MachineError.Unexpected(word);
 }

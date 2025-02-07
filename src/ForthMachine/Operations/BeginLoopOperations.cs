@@ -4,41 +4,36 @@ namespace ForthMachine;
 
 public static class BeginLoopOperations
 {
-    public static ReductionResult<string, MachineState> BeginLoop(MachineState state, string _) =>
-        state.PushScope(BeginScopeState.Empty);
+    public static ReductionResult<string, MachineState> Begin(MachineState state, string _) =>
+        state.PushScope(BeginScopeState.Initial);
 
-    public static ReductionResult<string, MachineState> AddInnerWord(MachineState state, string word) =>
-        state
-            .PopScope(out BeginScopeState beginLoopScope)
-            .PushScope(beginLoopScope.AddWord(word));
+    public static ReductionResult<string, MachineState> ProcessBody(MachineState state, string word) =>
+        state.FlatMapTopScope<BeginScopeState>(scope => scope.AddBodyWord(word));
 
-    public static ReductionResult<string, MachineState> EndLoop(MachineState state, string _)
+    public static ReductionResult<string, MachineState> Until(MachineState state, string _)
     {
-        var state2 = state.PopScope(out BeginScopeState beginLoopScope);
+        var scope = (BeginScopeState)state.PeekScope();
+        if (scope.HasInnerScope)
+            return state.Unexpected(MachineWords.Until);
         
-        var result = new ReductionResult<string, MachineState>(state2.PushScope(beginLoopScope));
-        foreach (var word in beginLoopScope.LoopWords.Append("UNTIL"))
-            result.YieldNext(word);
-        
-        return result;
+        return Repeat(state, scope);
     }
 
     public static ReductionResult<string, MachineState> Repeat(MachineState state, string _)
     {
-        var state2 = state.PopScope(out ScopeState scope);
-        if (scope is not BeginScopeState beginLoopScope)
-            return state2.SetError("Unexpected 'UNTIL' word.");
+        var nextState = state.Pop(out bool condition);
+        if (condition || !nextState.Valid())
+            return nextState;
 
-        var state3 = state2.Pop(out bool condition);
-        if (!state3.Valid())
-            return state3;
+        var scope = (BeginScopeState)state.PeekScope();
 
-        if (condition)
-            return state3;
+        return Repeat(nextState, scope);
+    }
 
-        var result = new ReductionResult<string, MachineState>(state3.PushScope(beginLoopScope));
-        foreach (var word in beginLoopScope.LoopWords.Append("UNTIL"))
-            result.YieldNext(word);
+    private static ReductionResult<string, MachineState> Repeat(MachineState state, BeginScopeState scope)
+    {
+        var result = new ReductionResult<string, MachineState>(state);
+        scope.BodyWords.Append(MachineWords.Until).ForEach(result.YieldNext);
 
         return result;
     }
