@@ -17,10 +17,10 @@ public class ReplReader
         {
             ReplWriter.Prompt();
 
-            var scopeTracker = new SyntacticScopeTracker();
+            var replInputScopeTracker = new SyntacticScopeTracker();
             var words = new List<string>();
 
-            var result = ReadUserInput(scopeTracker, words)
+            var result = ReadUserInput(replInputScopeTracker, words)
                 .OnError(ReplWriter.PrintError);
 
             if (!result.HasValue)
@@ -33,20 +33,20 @@ public class ReplReader
         }
     }
 
-    private Result<bool, string> ReadUserInput(SyntacticScopeTracker scopeTracker, List<string> words)
+    private Result<bool, string> ReadUserInput(SyntacticScopeTracker replInputScopeTracker, List<string> words)
     {        
         var userInput = ReadLine();
         if (IsFinishWord(userInput))
             return false;
 
         var userInputWords = ReplParser.Parse(userInput);
-        var trackingResult = TrackScope(scopeTracker, userInputWords);
+        var trackingResult = TrackScope(replInputScopeTracker, userInputWords);
         words.AddRange(userInputWords);
 
         return trackingResult.Match(
-            scopeTracker => scopeTracker.IsEmpty
-                ? true
-                : ReadUserInput(scopeTracker, words),
+            replInputScopeTracker => replInputScopeTracker.HasInnerScope
+                ? ReadUserInput(replInputScopeTracker, words)
+                : true,
             error => error
         );
     }
@@ -57,11 +57,11 @@ public class ReplReader
     private static TrackingResult TrackScope(SyntacticScopeTracker scopeTracker, Words words)
     {
         var initial = TrackingResult.Value(scopeTracker);
-        return words.Aggregate(initial, TrackOnNext);
+        return words.Aggregate(initial, TrackNext);
     }
 
-    private static TrackingResult TrackOnNext(TrackingResult result, string word) =>
-        result.FlatMap(scopeTracker => scopeTracker.OnNextWord(word));
+    private static TrackingResult TrackNext(TrackingResult result, string word) =>
+        result.FlatMap(scopeTracker => scopeTracker.TrackNext(word));
 
     private static string ReadLine() => (Console.ReadLine() ?? string.Empty).Trim();
 }

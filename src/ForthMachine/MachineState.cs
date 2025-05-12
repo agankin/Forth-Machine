@@ -19,6 +19,8 @@ public record MachineState(
         Error: None<string>()
     );
 
+    public bool HasInnerScope => !SyntacticScopeStack.IsEmpty;
+
     public MachineState Push(MachineValue value) => Map(
         state => state with { Stack = Stack.Push(value) }
     );

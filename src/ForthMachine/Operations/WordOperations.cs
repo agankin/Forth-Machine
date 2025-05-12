@@ -6,11 +6,9 @@ public static class DefineWordOperations
 {
     public static ReductionResult<string, MachineState> BeginWord(MachineState state, string _)
     {
-        var scope = state.PeekScope();
-        if (scope is not RootScopeState)
-            return state.Unexpected(MachineWords.BeginWord);
-
-        return state.PushScope(WordScopeState.Initial);
+        return state.HasInnerScope
+            ? state.Unexpected(MachineWords.BeginWord)
+            : state.PushScope(WordScopeState.Initial);
     }
 
     public static ReductionResult<string, MachineState> SetName(MachineState state, string name) =>

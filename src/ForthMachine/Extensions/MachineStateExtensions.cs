@@ -66,6 +66,8 @@ internal static class MachineStateExtensions
         return nextState;
     }
 
+    public static TScope PeekScope<TScope>(this MachineState state) where TScope : ScopeState => (TScope)state.PeekScope();
+
     public static bool Valid(this MachineState state) => !state.Error.HasValue;
 
     public static MachineState FlattenError(this MachineState state, Func<Option<string>> getError) =>

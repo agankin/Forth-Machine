@@ -8,8 +8,8 @@ public static class IfOperations
     {
         return (MachineState machineState, string _) =>
         {
-            var nextMachineState = machineState.Pop(out bool condition).PushScope(IfScopeState.Initial);
-            var goToStateId = condition ? trueStateId : falseStateId;
+            var nextMachineState = machineState.Pop(out bool value).PushScope(IfScopeState.Initial);
+            var goToStateId = value ? trueStateId : falseStateId;
             
             return new ReductionResult<string, MachineState>(nextMachineState).DynamiclyGoTo(goToStateId);
         };

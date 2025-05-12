@@ -11,9 +11,11 @@ public readonly record struct SyntacticScopeTracker
     {
     }
 
-    public ImmutableStack<SyntacticScope> Scopes { get; init; } = ImmutableStack<SyntacticScope>.Empty;
+    public bool HasInnerScope => !Scopes.IsEmpty;
 
-    public TrackingResult OnNextWord(string word)
+    private ImmutableStack<SyntacticScope> Scopes { get; init; } = ImmutableStack<SyntacticScope>.Empty;
+
+    public TrackingResult TrackNext(string word)
     {
         var upperWord = word?.ToUpperInvariant();
         return upperWord switch

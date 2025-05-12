@@ -5,24 +5,24 @@ namespace ForthMachine;
 
 internal record BeginScopeState(
     ImmutableList<string> BodyWords,
-    SyntacticScopeTracker InnerScopeTracker
+    SyntacticScopeTracker BodyScopeTracker
 ) : ScopeState()
 {
     public static readonly BeginScopeState Initial = new(
         ImmutableList<string>.Empty,
-        InnerScopeTracker: new()
+        BodyScopeTracker: new()
     );
 
-    public bool HasInnerScope => !InnerScopeTracker.Scopes.IsEmpty;
+    public bool HasInnerScope => BodyScopeTracker.HasInnerScope;
 
     public Result<BeginScopeState, string> AddBodyWord(string word)
     {
-        return InnerScopeTracker.OnNextWord(word)
+        return BodyScopeTracker.TrackNext(word)
             .Map(scopeTracker =>
                 this with
                 {
                     BodyWords = BodyWords.Add(word),
-                    InnerScopeTracker = scopeTracker
+                    BodyScopeTracker = scopeTracker
                 });
     }
 }

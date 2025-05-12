@@ -12,11 +12,11 @@ public static class BeginLoopOperations
 
     public static ReductionResult<string, MachineState> Until(MachineState state, string _)
     {
-        var scope = (BeginScopeState)state.PeekScope();
-        if (scope.HasInnerScope)
-            return state.Unexpected(MachineWords.Until);
-        
-        return Repeat(state, scope);
+        var scope = state.PeekScope<BeginScopeState>();
+
+        return scope.HasInnerScope
+            ? state.Unexpected(MachineWords.Until)
+            : Repeat(state, scope);
     }
 
     public static ReductionResult<string, MachineState> Repeat(MachineState state, string _)
@@ -25,7 +25,7 @@ public static class BeginLoopOperations
         if (condition || !nextState.Valid())
             return nextState;
 
-        var scope = (BeginScopeState)state.PeekScope();
+        var scope = state.PeekScope<BeginScopeState>();
 
         return Repeat(nextState, scope);
     }

@@ -114,11 +114,11 @@ public static class MachineBuilder
 
     private static void AddWordDefinition(State<string, MachineState> state)
     {
-        var awaitNameState = state.TransitsBy(MachineWords.BeginWord)
+        var expectsNameState = state.TransitsBy(MachineWords.BeginWord)
             .WithReducingBy(DefineWordOperations.BeginWord)
             .ToNew();
         
-        var processBodyState = awaitNameState.TransitsWhen(MachineWords.IsNewWord)
+        var processBodyState = expectsNameState.TransitsWhen(MachineWords.IsNewWord)
             .WithReducingBy(DefineWordOperations.SetName)
             .ToNew();
         
